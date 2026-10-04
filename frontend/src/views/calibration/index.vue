@@ -24,6 +24,62 @@
       </span>
     </p>
 
+    <div class="board-row">
+      <section class="board-panel">
+        <h3>临期视图</h3>
+        <p class="panel-desc">有效期已过或 {{ expiringDays }} 天内到期的在用仪器</p>
+        <ul class="panel-list">
+          <li v-for="item in board.expiring" :key="String(item.row.id)">
+            <span class="panel-main">
+              {{ item.row['仪器编号'] }} · {{ item.row['仪器名称'] }}（有效期至 {{ item.row['有效期至'] }}）
+            </span>
+            <span class="panel-side">
+              <em :class="['due-tag', item.state === '已到期' ? 'overdue' : 'soon']">
+                {{ item.state === '已到期' ? `已超期 ${Math.abs(item.daysLeft ?? 0)} 天` : `剩 ${item.daysLeft ?? 0} 天` }}
+              </em>
+              <button class="link" type="button" @click="runAction('送出检定', item.row)">送出检定</button>
+            </span>
+          </li>
+          <li v-if="!board.expiring.length" class="panel-empty">暂无临期或到期仪器</li>
+        </ul>
+      </section>
+
+      <section class="board-panel">
+        <h3>送检待办</h3>
+        <p class="panel-desc">待送检新仪器与到期需复检仪器</p>
+        <ul class="panel-list">
+          <li v-for="row in board.todos" :key="String(row.id)">
+            <span class="panel-main">
+              {{ row['仪器编号'] }} · {{ row['仪器名称'] }}
+              <small>{{ row.status === '待送检' ? '新仪器待首次送检' : `有效期至 ${row['有效期至'] || '未登记'}` }}</small>
+            </span>
+            <span class="panel-side">
+              <button class="link" type="button" @click="runAction('送出检定', row)">送出检定</button>
+            </span>
+          </li>
+          <li v-if="!board.todos.length" class="panel-empty">送检待办已清空</li>
+        </ul>
+      </section>
+
+      <section class="board-panel">
+        <h3>检定验收</h3>
+        <p class="panel-desc">已送出待验收结论的记录，验收后进入合格或不合格</p>
+        <ul class="panel-list">
+          <li v-for="row in board.accepting" :key="String(row.id)">
+            <span class="panel-main">
+              {{ row['仪器编号'] }} · {{ row['仪器名称'] }}
+              <small>{{ row['检定单位'] || '检定单位未登记' }} · 送出 {{ row['检定日期'] || '—' }}</small>
+            </span>
+            <span class="panel-side">
+              <button class="link" type="button" @click="runAction('确认合格', row)">验收合格</button>
+              <button class="link danger" type="button" @click="runAction('标记不合格', row)">验收不合格</button>
+            </span>
+          </li>
+          <li v-if="!board.accepting.length" class="panel-empty">暂无待验收的送检记录</li>
+        </ul>
+      </section>
+    </div>
+
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
         <span>{{ field }}</span>
@@ -74,11 +130,14 @@
 import { computed, onMounted, ref } from 'vue'
 
 import {
+  calibrationBoard,
   downloadEntries,
   listEntries,
   moduleMeta,
   runAction as applyAction,
 } from '@/api/local-service'
+import { CALIBRATION_EXPIRING_DAYS } from '@/data/calibration'
+import type { CalibrationBoard } from '@/api/local-service'
 import type { EntryRow } from '@/data/types'
 
 const meta = moduleMeta('calibration')
@@ -86,11 +145,13 @@ const columns = ["记录编号", "仪器编号", "仪器名称", "检定单位",
 const actions = ["送出检定", "确认合格", "标记不合格"]
 const statuses = ["待送检", "送检中", "已合格", "不合格", "已停用"]
 const stats = [{"label": "待送检仪器", "value": 0}, {"label": "已合格仪器", "value": 0}, {"label": "不合格仪器", "value": 0}]
+const expiringDays = CALIBRATION_EXPIRING_DAYS
 
 const rows = ref<EntryRow[]>([])
 const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
+const board = ref<CalibrationBoard>({ expiring: [], todos: [], accepting: [] })
 const filterFields = columns.slice(0, 3)
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
@@ -128,6 +189,7 @@ function reload() {
     const payload = listEntries(meta.key, filters.value)
     rows.value = payload.items
     total.value = payload.total
+    board.value = calibrationBoard()
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '仪器检定列表读取失败'
   }

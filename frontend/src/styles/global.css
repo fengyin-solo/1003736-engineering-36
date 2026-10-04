@@ -35,3 +35,17 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .error-text { color: #b42318; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .legend-item { background: #eef2f7; border-radius: 999px; padding: 2px 10px; }
+.board-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: stretch; }
+.board-panel { flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.board-panel h3 { margin: 0 0 4px; font-size: 14px; }
+.panel-desc { margin: 0 0 8px; font-size: 12px; color: var(--muted); }
+.panel-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.panel-list li { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 13px; }
+.panel-main { display: flex; flex-direction: column; min-width: 0; }
+.panel-main small { color: var(--muted); font-size: 12px; }
+.panel-side { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+.panel-empty { color: var(--muted); font-size: 12px; }
+.due-tag { font-style: normal; font-size: 12px; border-radius: 999px; padding: 1px 8px; }
+.due-tag.soon { background: #fef3c7; color: #92400e; }
+.due-tag.overdue { background: #fee2e2; color: #b42318; }
+.link.danger { color: #b42318; }

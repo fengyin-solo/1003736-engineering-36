@@ -1,4 +1,5 @@
 import { MODULE_BY_KEY } from '@/data/modules'
+import { calibrationDue, type CalibrationDue } from '@/data/calibration'
 import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
 
@@ -59,6 +60,30 @@ export function runAction(key: string, id: number, action: string): ActionResult
 export function resetModule(key: string): PageResult {
   resetRows(key)
   return listEntries(key)
+}
+
+// 仪器检定看板：临期视图、送检待办、检定验收三块数据一起出，页面不用各自再算一遍
+export type CalibrationBoard = {
+  /** 临期视图：已到期 + 30 天内到期，按有效期升序，最急的排前面 */
+  expiring: CalibrationDue[]
+  /** 送检待办：待送检的新仪器 + 已到期/临期需要复检的在用仪器 */
+  todos: EntryRow[]
+  /** 检定验收：已送出、待确认检定结论的记录 */
+  accepting: EntryRow[]
+}
+
+export function calibrationBoard(today: Date = new Date()): CalibrationBoard {
+  const rows = listRows('calibration')
+  const dues = rows.map((row) => calibrationDue(row, today))
+  const expiring = dues
+    .filter((due) => due.state === '已到期' || due.state === '临期')
+    .sort((a, b) => (a.daysLeft ?? 0) - (b.daysLeft ?? 0))
+  const expiringIds = new Set(expiring.map((due) => Number(due.row.id)))
+  const todos = rows.filter(
+    (row) => String(row.status) === '待送检' || expiringIds.has(Number(row.id)),
+  )
+  const accepting = rows.filter((row) => String(row.status) === '送检中')
+  return { expiring, todos, accepting }
 }
 
 export function exportEntries(key: string): { filename: string; content: string } {
