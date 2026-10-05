@@ -36,3 +36,25 @@ export type OverviewResult = {
   cards: { label: string; value: number }[]
   modules: { name: string; created: number; pending: number; abnormal: number }[]
 }
+
+// 跨模块联动的断点任务（如检定验收后同步生成巡检核查项）。
+export type LinkedJob = {
+  id: string
+  type: string
+  refId: number
+  status: 'running' | 'failed' | 'done'
+  stage: number
+  attempts: number
+  lastError: string
+  createdAt: string
+  updatedAt: string
+  payload: Record<string, string | number | boolean>
+}
+
+// 带版本号的本地持久化结构：rows 是各模块业务行，jobs 是联动断点任务。
+export type StoredData = {
+  version: number
+  initializedAt: string
+  rows: Record<string, EntryRow[]>
+  jobs: LinkedJob[]
+}

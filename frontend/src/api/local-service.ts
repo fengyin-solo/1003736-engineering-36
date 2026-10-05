@@ -1,9 +1,21 @@
 import { MODULE_BY_KEY } from '@/data/modules'
-import { allRows, listRows, resetRows, saveRows } from '@/data/local-store'
+import { allRows, initLocalData, listRows, resetRows, saveRows } from '@/data/local-store'
+import { acceptCalibration } from '@/api/calibration-service'
 import type { ActionResult, EntryRow, ModuleMeta, OverviewResult, PageResult } from '@/data/types'
 
 // 会写进数据的「往回走」动作：命中就把这条记录标成异常态，看板上能一眼看出来。
 const NEGATIVE_ACTIONS = ['撤销', '作废', '拒绝', '驳回', '停用', '忽略', '下线', '回滚']
+
+// 检定验收走带巡检联动的专门流程，不能只改本模块状态。
+const CALIBRATION_LINKED_ACTIONS: Record<string, 'qualified' | 'rejected'> = {
+  确认合格: 'qualified',
+  标记不合格: 'rejected',
+}
+
+/** 部署前初始化：应用启动时调用一次，重复调用幂等（已有数据不重复播种）。 */
+export function bootstrapLocalData(): void {
+  initLocalData()
+}
 
 export function moduleMeta(key: string): ModuleMeta {
   const meta = MODULE_BY_KEY.get(key)
@@ -33,6 +45,9 @@ export function runAction(key: string, id: number, action: string): ActionResult
   const target = meta.actionTargets[action]
   if (!target) {
     return { ok: false, message: `${meta.entity}没有登记「${action}」这个动作` }
+  }
+  if (key === 'calibration' && CALIBRATION_LINKED_ACTIONS[action]) {
+    return acceptCalibration(id, CALIBRATION_LINKED_ACTIONS[action])
   }
   const rows = listRows(key)
   const index = rows.findIndex((row) => Number(row.id) === id)

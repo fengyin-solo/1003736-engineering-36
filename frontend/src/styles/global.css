@@ -35,3 +35,16 @@ body { margin: 0; background: #f6f8fb; color: #1f2937; }
 .error-text { color: #b42318; }
 .status-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 0 0 10px; font-size: 12px; color: var(--muted); }
 .legend-item { background: #eef2f7; border-radius: 999px; padding: 2px 10px; }
+.expiry-badge { display: inline-block; border-radius: 999px; padding: 2px 10px; font-size: 12px; white-space: nowrap; }
+.expiry-valid { background: #e7f6ec; color: #18794e; }
+.expiry-expiring { background: #fdf1d8; color: #b25e09; }
+.expiry-expired { background: #fde2e0; color: #b42318; }
+.expiry-missing { background: #ede9fe; color: #6d28d9; }
+.stat-value.warn { color: #b42318; }
+.success-text { color: #18794e; }
+.todo-panel { margin-bottom: 14px; }
+.todo-panel h3 { font-size: 14px; margin: 8px 0; }
+.view-tabs { display: flex; gap: 8px; margin: 12px 0; }
+.job-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; background: #fdf1d8; border: 1px solid #f0c987; color: #7a4a07; border-radius: 8px; padding: 8px 12px; margin-bottom: 12px; font-size: 13px; }
+.linked-row { background: #faf7ff; }
+.linked-tag { margin-left: 6px; }

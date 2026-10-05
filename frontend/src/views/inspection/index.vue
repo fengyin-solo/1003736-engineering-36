@@ -22,7 +22,25 @@
       <span v-for="item in statusSummary" :key="item.status" class="legend-item">
         {{ item.status }}：{{ item.count }}
       </span>
+      <span class="legend-item">检定联动核查项：{{ linkedCount }}</span>
     </p>
+
+    <div class="view-tabs">
+      <button
+        type="button"
+        :class="['btn', { primary: activeView === 'all' }]"
+        @click="activeView = 'all'"
+      >
+        全部巡检
+      </button>
+      <button
+        type="button"
+        :class="['btn', { primary: activeView === 'linked' }]"
+        @click="activeView = 'linked'"
+      >
+        检定联动核查项（{{ linkedCount }}）
+      </button>
+    </div>
 
     <form class="filter-bar" @submit.prevent="reload">
       <label v-for="field in filterFields" :key="field" class="filter-item">
@@ -42,9 +60,12 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="row in rows" :key="String(row.id)">
+        <tr v-for="row in visibleRows" :key="String(row.id)" :class="{ 'linked-row': row['关联任务'] }">
           <td v-for="column in columns" :key="column">{{ row[column] ?? '—' }}</td>
-          <td>{{ row.status }}</td>
+          <td>
+            {{ row.status }}
+            <span v-if="row['关联任务']" class="expiry-badge expiry-missing linked-tag">联动</span>
+          </td>
           <td class="row-actions">
             <button
               v-for="action in actions"
@@ -57,8 +78,8 @@
             </button>
           </td>
         </tr>
-        <tr v-if="!rows.length">
-          <td :colspan="columns.length + 2" class="empty-state">暂无巡检记录数据，可先登记巡检记录</td>
+        <tr v-if="!visibleRows.length">
+          <td :colspan="columns.length + 2" class="empty-state">暂无符合条件的巡检记录</td>
         </tr>
       </tbody>
     </table>
@@ -92,6 +113,12 @@ const total = ref(0)
 const errorMessage = ref('')
 const filters = ref<Record<string, string>>({})
 const filterFields = columns.slice(0, 3)
+const activeView = ref<'all' | 'linked'>('all')
+
+const linkedCount = computed(() => rows.value.filter((row) => row['关联任务']).length)
+const visibleRows = computed(() =>
+  activeView.value === 'linked' ? rows.value.filter((row) => row['关联任务']) : rows.value,
+)
 const statusSummary = computed(() =>
   statuses.map((status: string) => ({
     status,

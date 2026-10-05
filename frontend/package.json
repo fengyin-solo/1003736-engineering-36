@@ -8,7 +8,8 @@
     "dev": "vite",
     "build": "vue-tsc --noEmit && vite build",
     "preview": "vite preview",
-    "typecheck": "vue-tsc --noEmit"
+    "typecheck": "vue-tsc --noEmit",
+    "check:data": "node scripts/check-local-data.mjs"
   },
   "dependencies": {
     "pinia": "^2.1.7",
@@ -21,5 +22,13 @@
     "typescript": "^5.4.3",
     "vite": "^5.2.6",
     "vue-tsc": "^2.0.7"
+  },
+  "optionalDependencies": {
+    "@esbuild/linux-arm64": "0.21.5",
+    "@esbuild/linux-x64": "0.21.5",
+    "@rollup/rollup-linux-arm64-gnu": "4.64.0",
+    "@rollup/rollup-linux-arm64-musl": "4.64.0",
+    "@rollup/rollup-linux-x64-gnu": "4.64.0",
+    "@rollup/rollup-linux-x64-musl": "4.64.0"
   }
 }
